@@ -1,21 +1,26 @@
 # pdf2md-paper
 
-專門把英文學術論文的 PDF 轉成 Markdown 的引擎，讓 LLM（Claude、Gemini）用比較少的 token 讀論文：內文轉成文字，圖另外切成 PNG。
+專門把英文學術論文的 PDF 轉成 Markdown 的引擎，讓 LLM用比較少的 token 讀論文：內文轉成文字，圖另外切成 PNG。
 
-- 在本機執行：轉檔不用上網，PDF 和輸出都只留在你的電腦裡。
-- 只有安裝時要上網，下載 Python 套件和 MinerU 模型。
+- 在本機執行：轉檔不用上網，PDF 和輸出都只留在本地。
 
 ## 安裝
 需要 git 和 Python 3.10 以上。
-
+If you don't have NVIDIA GPU:
 ```bash
 git clone https://github.com/Ian-1234-Mei/pdf2md-paper.git
 cd pdf2md-paper
 ./install.sh
 ```
+Otherwise (Recommanded, Much Faster):
+```bash
+git clone https://github.com/Ian-1234-Mei/pdf2md-paper.git
+cd pdf2md-paper
+./install.sh --gpu
+```
 
 - install.sh 會在 engine/ 底下建 Python 虛擬環境，再把 MinerU 的模型下載到 ~/.mineru/models。
-- 有 NVIDIA GPU 就改跑 `./install.sh --gpu`：多裝一份 GPU 版 MinerU，公式辨識比較快；GPU 版失敗時會自動改用 CPU 版。
+- 多裝一份 GPU 版 MinerU，公式辨識比較快；GPU 版失敗時會自動改用 CPU 版。
 - 佔用空間：CPU 版約 2.9 GB（engine/ 0.9 GB＋模型 2.0 GB）；加 --gpu 約 9.9 GB（engine/ 7.1 GB＋模型 2.8 GB）。
 - pip 的下載快取另外佔 0.3 GB（CPU 版）或 3.1 GB（--gpu），在 ~/.cache/pip；裝完可以用 `engine/venv/bin/python -m pip cache purge` 清掉。
 - 安裝時間看網速：測試時 CPU 版約 5.5 分鐘，--gpu 再多約 5 分鐘。
@@ -32,10 +37,8 @@ cd pdf2md-paper
 - 預設是 `-ref-wo -tab-wo -eq-wo`：刪參考文獻；表格、公式和 Algorithm 只用 .md 的文字呈現，不附 PNG 連結。
 - 要保留就改成 `-ref-w`、`-tab-w`、`-eq-w`。
 - 旗標沒給齊時會在終端機詢問，按 Enter 就用預設；旗標給齊就不會問。
-- 範例 PDF：任一篇 arXiv 論文，例如 https://arxiv.org/abs/1706.03762 （這篇沒有驗證過）。
 
 ## 動機：省 token
-token 是 Claude 計算輸入量的單位，愈少愈省；整份 PDF 直接給 Claude，平均每頁約 2,607 tokens。
 
 下表是 7 份 PDF（論文和自己的報告，共 89 頁）一步步加上每項處理後，.md＋PNG 合計的 tokens：
 
@@ -52,8 +55,6 @@ token 是 Claude 計算輸入量的單位，愈少愈省；整份 PDF 直接給 
 - 用現在的預設，7 份各自是原 PDF 的 40%～90%；只讀 .md、不開 PNG 是 37%。
 - 圖依字級選 dpi 後，Haiku 抄出圖裡文字的正確率：200 dpi 是 97.6%、300 dpi 是 97.8%；只測過一篇論文的 8 張圖。
 - 量法：Anthropic 的 count_tokens API，模型 claude-opus-5-5，用 2026-11-14 的引擎量；之後引擎還有修改，沒有重量。
-- 「＋刪參考文獻」那列是分開量的 .md 和 PNG 相加，其餘各列直接量。
-- 這些數字只適用 Claude；Gemini 的算法不同，沒有量。
 
 ## 技術細節
 流程：`pdf2md` → `engine/pdf2md_paper.py` → `engine/mineru_eq.py`（在 MinerU 的虛擬環境裡跑）→ `論文.md`＋`論文-graph/`
@@ -95,7 +96,7 @@ token 是 Claude 計算輸入量的單位，愈少愈省；整份 PDF 直接給 
 - 要把它改成網路服務給別人用，先讀 AGPL-3.0 第 13 條、[Artifex 的授權說明](https://artifex.com/licensing/) 和 MinerU 的 LICENSE.md 第 2 條。
 
 ## 聲明
-- 這份引擎是用 Claude（Claude Code）vibe coding 寫出來的。
-- 轉檔規則只用手邊少量的 PDF 檢驗過，主要是 VLA、強化學習（RL）、醫療影像分割的論文，加上少量自己的報告；其他領域或排版可能轉錯。
+- 這份引擎是用 Claude vibe coding 寫出來的。
+- 轉檔規則只用手邊少量的 PDF 檢驗過，主要是 VLA、RL、醫療影像分割的論文，加上少量自己的報告；其他領域或排版可能轉錯。
 - 適用：英文學術論文。不支援：投影片。沒測過：掃描檔、中文論文、Mac。
 - 測過的環境：Ubuntu 22.04（WSL2）、Python 3.10。
