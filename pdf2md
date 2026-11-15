@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Copyright (C) 2026 Ian-1234-Mei
+# SPDX-License-Identifier: AGPL-3.0-or-later
+HERE=$(dirname -- "$(realpath -- "$0")")
+mode=paper-png ref="" tab="" eq="" files=()
+for a in "$@"; do
+  case "$a" in
+    -paper-png) ;;
+    -ref-w|-ref-wo) [ -z "$ref" ] || { echo "-ref-w 和 -ref-wo 只能選一個" >&2; exit 1; }; ref=${a#-} ;;
+    -tab-w|-tab-wo) [ -z "$tab" ] || { echo "-tab-w 和 -tab-wo 只能選一個" >&2; exit 1; }; tab=${a#-} ;;
+    -eq-w|-eq-wo) [ -z "$eq" ] || { echo "-eq-w 和 -eq-wo 只能選一個" >&2; exit 1; }; eq=${a#-} ;;
+    -*) echo "不認得的選項：$a" >&2; exit 1 ;;
+    *) files+=("$a") ;;
+  esac
+done
+[ ${#files[@]} -gt 0 ] || { echo "用法：pdf2md <檔案>... [-paper-png] [-ref-w|-ref-wo] [-tab-w|-tab-wo] [-eq-w|-eq-wo]" >&2; exit 1; }
+extra=()
+if [ "$mode" = paper-png ]; then
+  ask="" say="" keep=""
+  [ -n "$ref" ] || { ask+=" ref"; say+="，去除參考資料"; keep+=" 和 -ref-w"; }
+  [ -n "$tab" ] || { ask+=" tab"; say+="，表格直接用.md的文字呈現不附上png圖片連結"; keep+=" 和 -tab-w"; }
+  [ -n "$eq" ] || { ask+=" eq"; say+="，公式和Algorithm直接用.md的文字呈現不附上png圖片連結"; keep+=" 和 -eq-w"; }
+  hint="預設${say#，}，按enter後以預設模式執行；如果要保留，請輸入 ${keep# 和 }"
+  while [ -n "$ask" ]; do
+    { true < /dev/tty; } 2>/dev/null || { echo "$hint"; break; }
+    read -r -a ans -p "$hint: " < /dev/tty || { echo; break; }
+    r="" t="" e="" bad=""
+    for a in "${ans[@]}"; do
+      case "${a#-}" in
+        ref-w|ref-wo) [[ $ask == *ref* ]] && r=${a#-} || bad=$a ;;
+        tab-w|tab-wo) [[ $ask == *tab* ]] && t=${a#-} || bad=$a ;;
+        eq-w|eq-wo) [[ $ask == *eq* ]] && e=${a#-} || bad=$a ;;
+        *) bad=$a ;;
+      esac
+    done
+    [ -z "$bad" ] && { ref=${ref:-$r}; tab=${tab:-$t}; eq=${eq:-$e}; break; }
+    echo "不認得的選項：$bad" >&2; exit 1
+  done
+  [ "$ref" = ref-w ] || extra+=(--ref-wo)
+  [ "$tab" = tab-w ] || extra+=(--tab-wo)
+  [ "$eq" = eq-w ] || extra+=(--eq-wo)
+fi
+for f in "${files[@]}"; do
+  [ -f "$f" ] || { echo "找不到檔案：$f" >&2; exit 1; }
+  f=$(realpath -- "$f")
+  dir=$(dirname -- "$f")
+  stem=$(basename -- "${f%.*}")
+  /usr/bin/python3 "$HERE/engine/pdf2md_paper.py" "$f" "$dir/$stem.md" "$dir/$stem-graph" "${extra[@]}" || exit 1
+done
