@@ -6,13 +6,14 @@
 
 ## 安裝
 需要 git 和 Python 3.10 以上。
+
 If you don't have NVIDIA GPU:
 ```bash
 git clone https://github.com/Ian-1234-Mei/pdf2md-paper.git
 cd pdf2md-paper
 ./install.sh
 ```
-Otherwise (Recommanded, Much Faster):
+Otherwise (Recommended, Much Faster):
 ```bash
 git clone https://github.com/Ian-1234-Mei/pdf2md-paper.git
 cd pdf2md-paper
@@ -20,7 +21,7 @@ cd pdf2md-paper
 ```
 
 - install.sh 會在 engine/ 底下建 Python 虛擬環境，再把 MinerU 的模型下載到 ~/.mineru/models。
-- 多裝一份 GPU 版 MinerU，公式辨識比較快；GPU 版失敗時會自動改用 CPU 版。
+- `--gpu` 會多裝一份 GPU 版 MinerU，公式辨識比較快；GPU 版失敗時會自動改用 CPU 版。
 - 佔用空間：CPU 版約 2.9 GB（engine/ 0.9 GB＋模型 2.0 GB）；加 --gpu 約 9.9 GB（engine/ 7.1 GB＋模型 2.8 GB）。
 - pip 的下載快取另外佔 0.3 GB（CPU 版）或 3.1 GB（--gpu），在 ~/.cache/pip；裝完可以用 `engine/venv/bin/python -m pip cache purge` 清掉。
 - 安裝時間看網速：測試時 CPU 版約 5.5 分鐘，--gpu 再多約 5 分鐘。
