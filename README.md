@@ -65,9 +65,25 @@ cd pdf2md-paper
 |---|---|
 | pdf2md | 指令入口：解析旗標，旗標沒給齊時在終端機詢問，再逐檔呼叫主引擎 |
 | install.sh | 建 engine/venv（PyMuPDF）和 engine/venv-mineru（MinerU CPU 版），加 --gpu 再建 engine/venv-mineru-gpu；安裝鎖定版本並下載模型 |
-| engine/pdf2md_paper.py | 主引擎，做的事見下方 |
+| engine/pdf2md_paper.py | 主引擎入口：main() 依序執行下方的步驟 |
+| engine/paper/ | 主引擎的轉檔規則，依功能分成下表的模組 |
 | engine/mineru_eq.py | 在 MinerU 的虛擬環境裡跑 MinerU，抽出獨立公式和行內公式的頁碼、位置與 LaTeX，存成 json 交給主引擎 |
 | engine/requirements*.txt | 三個虛擬環境的鎖定版本 |
+
+| engine/paper/ 的模組 | 負責 |
+|---|---|
+| ctx.py | 這次轉檔的執行狀態：main() 依序設定，其他模組讀取 |
+| geom.py | 方框座標：交集、重疊、同列、間距 |
+| text.py | 字串正規化、圖表標號、粗體與數學字型、跨行接字 |
+| equations.py | 找出獨立公式區塊 |
+| tables.py | 表格轉 Markdown，表格在橫線處切開 |
+| algo.py | Algorithm 框轉巢狀清單 |
+| crop.py | 切 PNG，依字級選 dpi |
+| texcheck.py | MinerU 的 LaTeX 和 PDF 字元比對、修補 |
+| inline_tex.py | 行內 LaTeX 字串整理成 `$…$` |
+| inline_pdf.py | 行內公式對回 PDF 的行與字元、KaTeX 字序 |
+| mineru_run.py | 呼叫 MinerU、讀 json、沒過檢查的公式重新辨識 |
+| page.py | 逐頁版面：標題、頁首頁尾、圖表、段落，再輸出成文字 |
 
 主引擎依序做：
 1. 用 PyMuPDF 讀出每一行文字的位置、字級與字型。
