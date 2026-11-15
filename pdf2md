@@ -45,5 +45,5 @@ for f in "${files[@]}"; do
   f=$(realpath -- "$f")
   dir=$(dirname -- "$f")
   stem=$(basename -- "${f%.*}")
-  /usr/bin/python3 "$HERE/engine/pdf2md_paper.py" "$f" "$dir/$stem.md" "$dir/$stem-graph" "${extra[@]}" || exit 1
+  "$HERE/engine/venv/bin/python" "$HERE/engine/pdf2md_paper.py" "$f" "$dir/$stem.md" "$dir/$stem-graph" "${extra[@]}" || exit 1
 done
